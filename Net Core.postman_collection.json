@@ -1,0 +1,234 @@
+{
+	"info": {
+		"_postman_id": "1f1e5044-489c-4a8f-b63e-9118aa7b89c3",
+		"name": "Net Core",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "register",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"username\": \"budi\",\r\n  \"email\": \"budi@example.com\",\r\n  \"password\": \"admin@123\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5000/auth/register",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"auth",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get-token",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"var CryptoJS = require('crypto-js');\r",
+									"\r",
+									"let client_id = \"0000546425\";//account number\r",
+									"let secret_key = \"4SzVGtS//lZdeoJAkCcGPA==\";//secret key\r",
+									"\r",
+									"var plainText = client_id + ':' + secret_key;\r",
+									"console.log(plainText);\r",
+									"var basic = CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse(plainText));\r",
+									"\r",
+									"pm.globals.set(\"basic\", basic);"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);\r",
+									"//console.log(jsonData);\r",
+									"pm.globals.set(\"access_token\", \"Bearer \"+jsonData.access_token);\r",
+									"pm.globals.set(\"refresh_token\", jsonData.refresh_token);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Basic {{basic}}",
+								"type": "default"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"grant_type\": \"password\",\r\n  \"username\": \"budi\",\r\n  \"password\": \"admin@123\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5000/auth/get-token",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"auth",
+								"get-token"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "refresh-token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);\r",
+									"//console.log(jsonData);\r",
+									"pm.globals.set(\"access_token\", \"Bearer \"+jsonData.access_token);\r",
+									"pm.globals.set(\"refresh_token\", jsonData.refresh_token);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{access_token}}",
+								"type": "default"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"grant_type\": \"refresh_token\",\r\n  \"refresh_token\": \"{{refresh_token}}\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5000/auth/refresh-token",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"auth",
+								"refresh-token"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "test-auth",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"var uuid = require('uuid');\r",
+									"var CryptoJS = require('crypto-js');\r",
+									"var request_id = uuid.v4();\r",
+									"let account_number = \"0000546425\";\r",
+									"var signature_key = \"ToIG8PwebN1NEBawXmvsFw==\"\r",
+									"pm.globals.set(\"request_id\", request_id);\r",
+									"pm.globals.set(\"account_number\", account_number);\r",
+									"\r",
+									"var plainText = request_id + ':' + account_number;\r",
+									"console.log(plainText);\r",
+									"var signatureBytes = CryptoJS.HmacSHA512(plainText,signature_key)\r",
+									"var signature = CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse(signatureBytes));\r",
+									"\r",
+									"pm.globals.set(\"Signature\", signature);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{access_token}}",
+								"type": "default"
+							},
+							{
+								"key": "X-Signature",
+								"value": "{{Signature}}",
+								"type": "default"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"request_id\": \"{{request_id}}\",\r\n  \"account_number\": \"{{account_number}}\",\r\n  \"full_name\": \"budi harsonno\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5000/auth/test-auth",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"auth",
+								"test-auth"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

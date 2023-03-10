@@ -1,0 +1,12 @@
+*.vs/*
+*.dll
+*.cache
+*/obj/*
+*.exe
+*.pdb
+*/bin/*
+publish/*
+*/.config/*
+PublishProfiles/
+*.user
+*/NLog/Logs/*
